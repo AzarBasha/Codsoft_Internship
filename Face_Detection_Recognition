@@ -1,0 +1,39 @@
+# importing library
+import cv2
+
+# Loading the cascades
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+eyes_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
+
+
+# Defining function that will do detections
+def detect(gray, frame):
+    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    # divided the frame into 4 quadrants
+    for (x, y, w, h) in faces:
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+        # cropping the quadrants to view each frame correctly
+        roi_gray = gray[y:y + h, x:x + h]
+        roi_color = frame[y:y + h, x:x + w]
+        eyes = eyes_cascade.detectMultiScale(roi_gray, 1.1, 3)
+        # divided eyes frame as quadrants
+        for (ex, ey, ew, eh) in eyes:
+            cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
+    return frame
+
+
+# Face Recognition using Webcam
+video_capture = cv2.VideoCapture(0)
+# video capture is set to 0 to enable web cam that is integrated within system otherwise it would've been 1
+while True:
+    # the image that is captured is stored in frame variable temporarily and is read
+    _, frame = video_capture.read()
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    canvas = detect(gray, frame)
+    # calling the video as if it is displaying as video or not
+    cv2.imshow('Video', canvas)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+video_capture.release()
+cv2.destroyAllWindows()
+
